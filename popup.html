@@ -8,30 +8,106 @@
   </head>
   <body>
     <main class="popup">
-      <header class="popup__header">
-        <h1>飞书背景色</h1>
-        <p>仅作用于飞书文档、表格和知识库页面。</p>
+      <header class="hero">
+        <div class="hero__brand">
+          <div class="hero__logo-shell">
+            <img class="hero__logo" src="assets/logo.svg" alt="Feishu Background logo" />
+          </div>
+          <div class="hero__copy">
+            <span class="hero__eyebrow">Feishu Background</span>
+            <h1>飞书背景色</h1>
+          </div>
+        </div>
+        <span class="hero__badge">MV3</span>
       </header>
 
-      <label class="field field--switch" for="enabled">
-        <span>启用插件</span>
-        <input id="enabled" type="checkbox" />
-      </label>
-
-      <div class="field-group">
-        <label class="field" for="colorPicker">
-          <span>颜色选择</span>
-          <input id="colorPicker" type="color" value="#f5f1e6" />
+      <section class="panel">
+        <label class="toggle" for="enabled">
+          <span class="toggle__copy">
+            <span class="toggle__title">启用插件</span>
+          </span>
+          <span class="toggle__control">
+            <input id="enabled" type="checkbox" />
+            <span class="toggle__track"></span>
+          </span>
         </label>
 
-        <label class="field" for="colorText">
-          <span>十六进制颜色</span>
-          <input id="colorText" type="text" value="#f5f1e6" maxlength="7" spellcheck="false" />
-        </label>
-      </div>
+        <div class="field">
+          <div class="field__heading">
+            <span>背景颜色</span>
+            <span id="colorCode" class="field__meta">#faf9f6</span>
+          </div>
+          <div class="color-row">
+            <label class="color-chip" for="colorPicker" title="打开颜色选择器">
+              <input id="colorPicker" type="color" value="#faf9f6" />
+            </label>
+            <input id="colorText" class="color-text" type="text" value="#faf9f6" maxlength="7" spellcheck="false" />
+            <span id="colorPreview" class="color-preview" aria-hidden="true"></span>
+          </div>
+        </div>
 
-      <button id="applyButton" class="apply-button" type="button">确认生效</button>
-      <p id="status" class="status" aria-live="polite"></p>
+        <div class="field">
+          <div class="field__heading">
+            <span>推荐色板</span>
+            <span class="field__meta">6 种默认色</span>
+          </div>
+          <div class="preset-groups">
+            <section class="preset-section" aria-label="浅色模式推荐色">
+              <div class="preset-section__head">
+                <span class="preset-section__title">浅色模式</span>
+                <span class="preset-section__meta">明亮环境</span>
+              </div>
+              <div class="preset-grid">
+                <button class="preset" type="button" data-color="#faf9f6">
+                  <span class="preset__swatch" style="--preset-color:#faf9f6"></span>
+                  暖白纸感
+                </button>
+                <button class="preset" type="button" data-color="#f5f5dc">
+                  <span class="preset__swatch" style="--preset-color:#f5f5dc"></span>
+                  经典米黄
+                </button>
+                <button class="preset" type="button" data-color="#c7edcc">
+                  <span class="preset__swatch" style="--preset-color:#c7edcc"></span>
+                  浅豆沙绿
+                </button>
+                <button class="preset" type="button" data-color="#e5e5e5">
+                  <span class="preset__swatch" style="--preset-color:#e5e5e5"></span>
+                  柔和浅灰
+                </button>
+              </div>
+            </section>
+
+            <section class="preset-section" aria-label="暗色模式推荐色">
+              <div class="preset-section__head">
+                <span class="preset-section__title">暗色模式</span>
+                <span class="preset-section__meta">暗光环境</span>
+              </div>
+              <div class="preset-grid">
+                <button class="preset" type="button" data-color="#282828">
+                  <span class="preset__swatch" style="--preset-color:#282828"></span>
+                  Gruvbox 深灰
+                </button>
+                <button class="preset" type="button" data-color="#1e1e1e">
+                  <span class="preset__swatch" style="--preset-color:#1e1e1e"></span>
+                  夜间深灰
+                </button>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <button id="applyButton" class="apply-button" type="button">保存并应用</button>
+        <p id="status" class="status" aria-live="polite"></p>
+      </section>
+
+      <section class="notes">
+        <div class="notes__list">
+          <p id="pageHint" class="notes__item notes__item--highlight" aria-live="polite">当前标签页不是目标飞书页面，设置会在打开匹配页面后自动生效。</p>
+          <p class="notes__item">支持：`docx` 与 `wiki` 文档模式稳定可用，`wiki` 表格模式当前暂停处理。</p>
+          <p class="notes__item">规则：仅对匹配的飞书页面注入背景色。</p>
+          <p class="notes__item">性能：仅同步颜色变量与 SPA 路由状态，设置仅保存在本机。</p>
+        </div>
+      </section>
     </main>
 
     <script src="popup.js"></script>

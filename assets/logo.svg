@@ -1,0 +1,20 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mintWing" x1="86" y1="64" x2="174" y2="154" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A5D4C6"/>
+      <stop offset="1" stop-color="#95C9BD"/>
+    </linearGradient>
+    <linearGradient id="baseWing" x1="54" y1="120" x2="205" y2="233" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7F95DE"/>
+      <stop offset="1" stop-color="#617CD5"/>
+    </linearGradient>
+    <linearGradient id="topWing" x1="118" y1="122" x2="231" y2="182" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5666AA"/>
+      <stop offset="1" stop-color="#455395"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M74 72H152C166 72 174 76 183 88C198 108 209 130 218 155C198 140 176 136 155 139C146 117 123 88 74 72Z" fill="url(#mintWing)"/>
+  <path d="M42 118C69 145 99 166 138 181C165 191 191 194 216 190C206 208 192 223 176 234C141 257 93 254 61 236C48 228 42 220 42 204V118Z" fill="url(#baseWing)"/>
+  <path d="M118 154C144 133 161 118 183 110C204 102 228 105 244 115C230 129 223 146 213 166C200 190 183 201 166 204C145 208 126 203 106 195C111 184 114 172 118 154Z" fill="url(#topWing)"/>
+</svg>

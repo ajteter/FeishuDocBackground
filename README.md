@@ -1,25 +1,46 @@
 # Feishu Background
 
-一个基于 Chrome Manifest V3 的轻量浏览器插件，仅在以下飞书页面路径生效：
+一个基于 Chrome Manifest V3 的轻量浏览器插件，用来给飞书页面增加自定义阅读背景色。当前版本优先保证文档模式稳定和性能开销可控。
+
+## 当前支持状态
+
+- `docx` 文档模式：已稳定支持。
+- `wiki` 普通文档模式与左侧目录：已稳定支持。
+- `wiki` 表格模式：当前已暂停处理，避免触发表格渲染错乱或内容叠层问题。
+
+## 生效路径
+
+插件只会注入到以下飞书页面：
 
 - `https://*.feishu.cn/docx/*`
-- `https://*.feishu.cn/sheets/*`
 - `https://*.feishu.cn/wiki/*`
 
 ## 功能说明
 
 - 提供插件开关。
 - 支持自定义十六进制背景色。
+- 提供优化过的弹窗 UI、推荐色板与当前标签页状态提示。
+- 内置默认色板已更新为浅色模式 `#FAF9F6`、`#F5F5DC`、`#C7EDCC`、`#E5E5E5`，暗色模式 `#282828`、`#1E1E1E`。
 - 使用 `content_scripts` 注入高优先级样式。
-- 通过 `MutationObserver` 监听飞书 SPA 的动态 DOM 变化，持续覆盖主体容器背景色。
-- 监听 `pushState`、`replaceState`、`popstate`、`hashchange`，在飞书单页路由切换后重新应用背景。
+- 使用 `chrome.storage.local` 本地保存设置，不做多设备同步。
+- 采用轻量化状态同步策略，只同步颜色变量与 SPA 路由变化，不再使用重型 DOM 扫描。
+- 提供参考飞书视觉语言设计的插件 logo 和扩展图标。
 
 ## 文件结构
 
 - `manifest.json`：MV3 清单。
+- `assets/logo.svg`：插件主 logo。
+- `icons/`：扩展图标资源。
 - `popup.html` / `popup.css` / `popup.js`：插件弹窗设置面板。
 - `content.css`：高优先级背景样式。
-- `content.js`：飞书页面容器识别、设置读取、DOM 监听和样式重应用逻辑。
+- `content.js`：设置读取、页面类型判断、颜色变量同步和 SPA 路由状态更新逻辑。
+
+## 设计与性能策略
+
+- 文档模式优先：先确保 `docx/wiki` 阅读页稳定可用。
+- 表格模式暂停：`wiki` 表格渲染层差异较大，当前版本不再强行覆盖单元格和网格层。
+- 低开销运行：不再使用 `MutationObserver + 全量 DOM 扫描`，避免对飞书加载速度造成明显影响。
+- 非目标页面不注入：已移除 `sheets` 页面匹配，减少不必要的脚本和样式加载。
 
 ## 如何在 Chrome 中加载并测试
 
@@ -32,10 +53,11 @@
    - `https://qw6xxurweq.feishu.cn/wiki/AggOwmVTAiD3evkT6CAcJJgenmh`
    - `https://qw6xxurweq.feishu.cn/wiki/VuciwkGMui7P1skj9Q5chBtIn8g`
 6. 点击浏览器工具栏中的插件图标。
-7. 勾选“启用插件”，输入或选择颜色后点击“确认生效”。
+7. 勾选“启用插件”，输入或选择颜色后点击“保存并应用”。
 8. 如果当前标签页就是目标飞书页面，背景会立即更新；如果不是，打开目标页面后会自动应用。
 
 ## 排查建议
 
 - 如果飞书页面已经打开但样式未更新，刷新一次页面。
 - 如果你修改了源码，回到 `chrome://extensions/` 页面点击“刷新”重新加载插件。
+- 如果你测试的是 `wiki` 表格块，请注意当前版本并不承诺这部分会变色。

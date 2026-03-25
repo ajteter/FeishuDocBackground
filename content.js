@@ -1,36 +1,16 @@
 const DEFAULT_SETTINGS = {
   enabled: true,
-  color: "#f5f1e6"
+  color: "#faf9f6"
 };
 
 const HTML_FLAG = "data-feishu-bg-extension";
-const ROOT_FLAG = "data-feishu-bg-root";
+const PAGE_FLAG = "data-feishu-bg-page";
 const COLOR_VARIABLE = "--feishu-bg-color";
-const SUPPORTED_PATH_PATTERN = /^\/(docx|sheets|wiki)\//i;
-const ROOT_SELECTORS = [
-  "#root",
-  "#app",
-  "[role='main']",
-  "[data-testid*='docs']",
-  "[data-testid*='editor']",
-  "[data-testid*='sheet']",
-  "[class*='workspace']",
-  "[class*='main-container']",
-  "[class*='mainContainer']",
-  "[class*='editor-container']",
-  "[class*='editorContainer']",
-  "[class*='doc-root']",
-  "[class*='docRoot']",
-  "[class*='wiki-root']",
-  "[class*='wikiRoot']",
-  "[class*='sheet-root']",
-  "[class*='sheetRoot']"
-];
+const SUPPORTED_PATH_PATTERN = /^\/(docx|wiki)\//i;
 
 let settings = { ...DEFAULT_SETTINGS };
-let observer = null;
-let applyScheduled = false;
-let lastUrl = location.href;
+let lastHref = location.href;
+let lastAppliedState = "";
 
 function normalizeColor(value) {
   if (typeof value !== "string") {
@@ -51,112 +31,34 @@ function normalizeColor(value) {
   return DEFAULT_SETTINGS.color;
 }
 
-function isSupportedUrl(candidate) {
+function getPageType(candidate) {
   try {
     const url = new URL(candidate, location.origin);
-    return /\.feishu\.cn$/i.test(url.hostname) && SUPPORTED_PATH_PATTERN.test(url.pathname);
+
+    if (!/\.feishu\.cn$/i.test(url.hostname)) {
+      return "";
+    }
+
+    const match = url.pathname.match(SUPPORTED_PATH_PATTERN);
+    return match ? match[1].toLowerCase() : "";
   } catch (error) {
-    return false;
+    return "";
   }
-}
-
-function markElement(element, collector) {
-  if (!(element instanceof HTMLElement)) {
-    return;
-  }
-
-  collector.add(element);
-
-  let current = element.parentElement;
-  let depth = 0;
-
-  while (current && depth < 4) {
-    collector.add(current);
-
-    if (current === document.body || current === document.documentElement) {
-      break;
-    }
-
-    current = current.parentElement;
-    depth += 1;
-  }
-}
-
-function isLargeContainer(element) {
-  if (!(element instanceof HTMLElement)) {
-    return false;
-  }
-
-  const rect = element.getBoundingClientRect();
-
-  if (rect.width <= 0 || rect.height <= 0) {
-    return false;
-  }
-
-  return rect.width >= window.innerWidth * 0.4 && rect.height >= window.innerHeight * 0.35;
-}
-
-function collectBodyContainers() {
-  if (!document.body) {
-    return [];
-  }
-
-  const containers = [];
-  const topLevelNodes = Array.from(document.body.children).slice(0, 10);
-
-  topLevelNodes.forEach((node) => {
-    if (isLargeContainer(node)) {
-      containers.push(node);
-    }
-
-    Array.from(node.children)
-      .slice(0, 10)
-      .forEach((child) => {
-        if (isLargeContainer(child)) {
-          containers.push(child);
-        }
-      });
-  });
-
-  return containers;
-}
-
-function collectTargetRoots() {
-  const roots = new Set();
-
-  if (document.documentElement) {
-    roots.add(document.documentElement);
-  }
-
-  if (document.body) {
-    roots.add(document.body);
-  }
-
-  ROOT_SELECTORS.forEach((selector) => {
-    document.querySelectorAll(selector).forEach((element) => {
-      if (isLargeContainer(element)) {
-        markElement(element, roots);
-      }
-    });
-  });
-
-  collectBodyContainers().forEach((element) => {
-    markElement(element, roots);
-  });
-
-  return roots;
-}
-
-function clearRootMarkers() {
-  document.querySelectorAll(`[${ROOT_FLAG}]`).forEach((element) => {
-    element.removeAttribute(ROOT_FLAG);
-  });
 }
 
 function disableTheme() {
-  clearRootMarkers();
+  if (!document.documentElement) {
+    return;
+  }
+
+  if (lastAppliedState === "disabled") {
+    return;
+  }
+
   document.documentElement.removeAttribute(HTML_FLAG);
+  document.documentElement.removeAttribute(PAGE_FLAG);
   document.documentElement.style.removeProperty(COLOR_VARIABLE);
+  lastAppliedState = "disabled";
 }
 
 function applyTheme() {
@@ -164,56 +66,33 @@ function applyTheme() {
     return;
   }
 
-  const enabledForPage = settings.enabled && isSupportedUrl(location.href);
+  const pageType = getPageType(location.href);
+  const isEnabled = settings.enabled && Boolean(pageType);
 
-  if (!enabledForPage) {
+  if (!isEnabled) {
     disableTheme();
     return;
   }
 
-  const roots = collectTargetRoots();
+  const nextState = `${pageType}:${settings.color}`;
 
-  clearRootMarkers();
+  if (lastAppliedState === nextState) {
+    return;
+  }
+
   document.documentElement.setAttribute(HTML_FLAG, "on");
+  document.documentElement.setAttribute(PAGE_FLAG, pageType);
   document.documentElement.style.setProperty(COLOR_VARIABLE, settings.color);
-
-  roots.forEach((element) => {
-    if (element instanceof HTMLElement && element !== document.documentElement && element !== document.body) {
-      element.setAttribute(ROOT_FLAG, "true");
-    }
-  });
+  lastAppliedState = nextState;
 }
 
-function scheduleApplyTheme() {
-  if (applyScheduled) {
+function syncLocationState() {
+  if (location.href === lastHref) {
     return;
   }
 
-  applyScheduled = true;
-
-  requestAnimationFrame(() => {
-    applyScheduled = false;
-    applyTheme();
-  });
-}
-
-function bootstrapObserver() {
-  if (observer || !document.documentElement) {
-    return;
-  }
-
-  observer = new MutationObserver(() => {
-    if (location.href !== lastUrl) {
-      lastUrl = location.href;
-    }
-
-    scheduleApplyTheme();
-  });
-
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true
-  });
+  lastHref = location.href;
+  applyTheme();
 }
 
 function wrapHistoryMethod(name) {
@@ -225,29 +104,24 @@ function wrapHistoryMethod(name) {
 
   history[name] = function wrappedHistoryMethod(...args) {
     const result = original.apply(this, args);
-
-    if (location.href !== lastUrl) {
-      lastUrl = location.href;
-      scheduleApplyTheme();
-    }
-
+    syncLocationState();
     return result;
   };
 }
 
 function readSettingsAndApply() {
-  chrome.storage.sync.get(DEFAULT_SETTINGS, (items) => {
+  chrome.storage.local.get(DEFAULT_SETTINGS, (items) => {
     settings = {
       enabled: Boolean(items.enabled),
       color: normalizeColor(items.color)
     };
 
-    scheduleApplyTheme();
+    applyTheme();
   });
 }
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName !== "sync") {
+  if (areaName !== "local") {
     return;
   }
 
@@ -259,7 +133,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     settings.color = normalizeColor(changes.color.newValue);
   }
 
-  scheduleApplyTheme();
+  applyTheme();
 });
 
 chrome.runtime.onMessage.addListener((message) => {
@@ -272,22 +146,13 @@ chrome.runtime.onMessage.addListener((message) => {
     color: normalizeColor(message.payload?.color)
   };
 
-  scheduleApplyTheme();
+  applyTheme();
 });
 
-window.addEventListener("popstate", scheduleApplyTheme, true);
-window.addEventListener("hashchange", scheduleApplyTheme, true);
-window.addEventListener("load", scheduleApplyTheme, true);
-window.addEventListener("resize", scheduleApplyTheme, true);
-document.addEventListener("visibilitychange", scheduleApplyTheme, true);
+window.addEventListener("popstate", syncLocationState, true);
+window.addEventListener("hashchange", syncLocationState, true);
+window.addEventListener("pageshow", syncLocationState, true);
 
 wrapHistoryMethod("pushState");
 wrapHistoryMethod("replaceState");
-bootstrapObserver();
 readSettingsAndApply();
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", scheduleApplyTheme, { once: true });
-} else {
-  scheduleApplyTheme();
-}

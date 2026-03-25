@@ -1,17 +1,60 @@
-html[data-feishu-bg-extension="on"],
-html[data-feishu-bg-extension="on"] body,
-html[data-feishu-bg-extension="on"] #root,
-html[data-feishu-bg-extension="on"] #app,
-html[data-feishu-bg-extension="on"] [data-feishu-bg-root="true"] {
-  background-color: var(--feishu-bg-color, #f5f1e6) !important;
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"],
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] body,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] #root,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] #app,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] .app,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] .app-main,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] .app-main-container,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] .app-main.main__content,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] .suite-body,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] .garr-container,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] .garr-container-docx,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] .page-main,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] .catalogue,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] .catalogue__main,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] .catalogue__main-wrapper,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] .catalogue__list,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] .docx-width-mode,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] .page-main.docx-width-mode-standard,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"],
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] body,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] #root,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] #app,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .app,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .app-main,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .app-main-container,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .app-main.main__content,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .suite-body,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .garr-container,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .page-main,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .catalogue,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .catalogue__main,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .catalogue__main-wrapper,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .catalogue__list,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .wiki-sidebar-wrap,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .wiki-sidebar-responsive-wrap,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .wiki-space-siderbar,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .wiki-space-siderbar-wrapper,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .workspace-next-sidebar-container,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .workspace-next-sidebar-wrapper,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .sidebar-container {
+  background-color: var(--feishu-bg-color, #faf9f6) !important;
   background-image: none !important;
 }
 
-html[data-feishu-bg-extension="on"] body::before {
+/*
+  Wiki table-mode overrides are intentionally paused.
+  Feishu's table engine uses a separate rendering layer, and broad cell/grid
+  background overrides were causing visual glitches and stacking issues.
+  Re-enable only after verifying the exact DOM or canvas structure.
+*/
+
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] body::before,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: var(--feishu-bg-color, #f5f1e6) !important;
+  background: var(--feishu-bg-color, #faf9f6) !important;
 }

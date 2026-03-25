@@ -1,6 +1,6 @@
 const DEFAULT_SETTINGS = {
   enabled: true,
-  color: "#f5f1e6"
+  color: "#faf9f6"
 };
 
 const HEX_COLOR_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
@@ -8,8 +8,12 @@ const HEX_COLOR_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 const enabledInput = document.getElementById("enabled");
 const colorPicker = document.getElementById("colorPicker");
 const colorText = document.getElementById("colorText");
+const colorCode = document.getElementById("colorCode");
+const colorPreview = document.getElementById("colorPreview");
 const applyButton = document.getElementById("applyButton");
 const statusText = document.getElementById("status");
+const pageHint = document.getElementById("pageHint");
+const presetButtons = Array.from(document.querySelectorAll(".preset"));
 
 function normalizeColor(value) {
   const trimmed = value.trim();
@@ -34,15 +38,69 @@ function setStatus(message, tone) {
 function toggleColorInputs(isEnabled) {
   colorPicker.disabled = !isEnabled;
   colorText.disabled = !isEnabled;
+  presetButtons.forEach((button) => {
+    button.disabled = !isEnabled;
+  });
 }
 
 function syncColorFields(nextColor) {
   colorPicker.value = nextColor;
   colorText.value = nextColor;
+  colorCode.textContent = nextColor;
+  colorPreview.style.background = nextColor;
+  presetButtons.forEach((button) => {
+    button.classList.toggle("is-active", normalizeColor(button.dataset.color || "") === nextColor);
+  });
+}
+
+function getPageType(urlValue) {
+  try {
+    const url = new URL(urlValue);
+
+    if (!/\.feishu\.cn$/i.test(url.hostname)) {
+      return "";
+    }
+
+    if (/^\/docx\//i.test(url.pathname)) {
+      return "docx";
+    }
+
+    if (/^\/wiki\//i.test(url.pathname)) {
+      return "wiki";
+    }
+
+    return "";
+  } catch (error) {
+    return "";
+  }
+}
+
+function renderPageHint() {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const [activeTab] = tabs;
+    const pageType = getPageType(activeTab?.url || "");
+
+    if (!activeTab || !pageType) {
+      pageHint.textContent = "当前标签页不是目标飞书页面，设置会在打开匹配页面后自动生效。";
+      return;
+    }
+
+    if (pageType === "docx") {
+      pageHint.textContent = "当前标签页是飞书文档，文档模式支持稳定。";
+      return;
+    }
+
+    if (pageType === "wiki") {
+      pageHint.textContent = "当前标签页是飞书知识库，普通文档模式支持稳定，表格块暂不处理。";
+      return;
+    }
+
+    pageHint.textContent = "当前标签页不是已支持的飞书文档或知识库页面。";
+  });
 }
 
 function loadSettings() {
-  chrome.storage.sync.get(DEFAULT_SETTINGS, (items) => {
+  chrome.storage.local.get(DEFAULT_SETTINGS, (items) => {
     const color = isValidHexColor(items.color) ? normalizeColor(items.color) : DEFAULT_SETTINGS.color;
 
     enabledInput.checked = Boolean(items.enabled);
@@ -94,7 +152,7 @@ function persistSettings() {
   applyButton.disabled = true;
   setStatus("正在保存设置...", "");
 
-  chrome.storage.sync.set(settings, () => {
+  chrome.storage.local.set(settings, () => {
     applyButton.disabled = false;
 
     if (chrome.runtime.lastError) {
@@ -123,11 +181,28 @@ colorText.addEventListener("input", () => {
 
   if (isValidHexColor(normalized)) {
     colorPicker.value = normalized.toLowerCase();
+    colorCode.textContent = normalized.toLowerCase();
+    colorPreview.style.background = normalized.toLowerCase();
   }
 
   setStatus("", "");
 });
 
+colorText.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    persistSettings();
+  }
+});
+
+presetButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const color = normalizeColor(button.dataset.color || DEFAULT_SETTINGS.color);
+    syncColorFields(color);
+    setStatus(`已选择推荐色 ${color}，点击“保存并应用”后生效。`, "");
+  });
+});
+
 applyButton.addEventListener("click", persistSettings);
 
 loadSettings();
+renderPageHint();
