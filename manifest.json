@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Feishu Background",
+  "version": "1.0.0",
+  "description": "Customize background colors for Feishu docs, sheets, and wiki pages.",
+  "permissions": [
+    "storage",
+    "tabs"
+  ],
+  "action": {
+    "default_title": "Feishu Background",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.feishu.cn/docx/*",
+        "https://*.feishu.cn/sheets/*",
+        "https://*.feishu.cn/wiki/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_start"
+    }
+  ]
+}

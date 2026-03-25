@@ -1,0 +1,26 @@
+# Role
+你是一个资深的浏览器插件（Chrome Extension）开发工程师，精通 Manifest V3 规范以及现代前端重型 SPA（单页面应用）的 DOM 逆向与操作。
+
+# Context
+我需要开发一个极其轻量的 Chrome 浏览器插件，其唯一目的是将飞书文档/表格页面（URL 包含 `.feishu.cn/docx/`，`.feishu.cn/sheets/`，`.feishu.cn/wiki/`）的页面背景颜色修改为自定义颜色。
+
+# Task
+请为我生成这个浏览器插件的完整代码，包括所有必需的文件和安装说明。
+
+# Technical Constraints & Requirements
+1. **规范标准：** 必须使用 Chrome Manifest V3 规范。
+2. **精确匹配：** 仅在 飞书指定 路径下生效，不要污染其他页面。
+3. **注入方式：** 推荐使用 `content_scripts` 注入。
+4. **攻克 SPA 动态渲染：** 考虑到飞书是动态加载的 SPA，简单的 `document.body` 样式修改会被其内部的高优先级 CSS 或内联样式覆盖。你生成的代码必须：
+   - 提供一个高优先级的注入层 (`content.css` 中大量使用 `!important`)。
+   - 如果使用 JS 修改 DOM，请使用 `MutationObserver` 确保在飞书的 DOM 挂载完成后再施加背景色修改。
+   - 尝试覆盖整个容器，而不仅仅是 body（飞书的主体区通常有特定的 wrapper div）。
+5. **无需复杂 UI：** 提供插件开关，输入颜色与确认生效按钮。
+6. 参考url：https://qw6xxurweq.feishu.cn/docx/PX7tdzKe0oT2bBxxNSGcovPqnLf，https://qw6xxurweq.feishu.cn/wiki/AggOwmVTAiD3evkT6CAcJJgenmh，https://qw6xxurweq.feishu.cn/wiki/VuciwkGMui7P1skj9Q5chBtIn8g
+
+# Expected Output
+请以代码块的形式输出以下文件内容，并附带简要的逻辑说明：
+1. `manifest.json`
+2. `content.js` (如果需要动态处理 DOM)
+3. `content.css` (注入的护眼样式)
+4. 一份简短的“如何在 Chrome 中加载并测试此插件”的步骤指南。

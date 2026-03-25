@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Feishu Background</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="popup">
+      <header class="popup__header">
+        <h1>飞书背景色</h1>
+        <p>仅作用于飞书文档、表格和知识库页面。</p>
+      </header>
+
+      <label class="field field--switch" for="enabled">
+        <span>启用插件</span>
+        <input id="enabled" type="checkbox" />
+      </label>
+
+      <div class="field-group">
+        <label class="field" for="colorPicker">
+          <span>颜色选择</span>
+          <input id="colorPicker" type="color" value="#f5f1e6" />
+        </label>
+
+        <label class="field" for="colorText">
+          <span>十六进制颜色</span>
+          <input id="colorText" type="text" value="#f5f1e6" maxlength="7" spellcheck="false" />
+        </label>
+      </div>
+
+      <button id="applyButton" class="apply-button" type="button">确认生效</button>
+      <p id="status" class="status" aria-live="polite"></p>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

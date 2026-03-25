@@ -1,0 +1,17 @@
+html[data-feishu-bg-extension="on"],
+html[data-feishu-bg-extension="on"] body,
+html[data-feishu-bg-extension="on"] #root,
+html[data-feishu-bg-extension="on"] #app,
+html[data-feishu-bg-extension="on"] [data-feishu-bg-root="true"] {
+  background-color: var(--feishu-bg-color, #f5f1e6) !important;
+  background-image: none !important;
+}
+
+html[data-feishu-bg-extension="on"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--feishu-bg-color, #f5f1e6) !important;
+}
