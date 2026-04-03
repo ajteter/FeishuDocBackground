@@ -3,7 +3,7 @@
   "name": "Feishu Background",
   "short_name": "Feishu BG",
   "version": "1.2.0",
-  "description": "Customize reading backgrounds for Feishu doc and wiki pages with a lightweight MV3 extension.",
+  "description": "Customize reading backgrounds for Feishu doc, wiki, and sheets pages with a lightweight MV3 extension.",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -26,7 +26,8 @@
     {
       "matches": [
         "https://*.feishu.cn/docx/*",
-        "https://*.feishu.cn/wiki/*"
+        "https://*.feishu.cn/wiki/*",
+        "https://*.feishu.cn/sheets/*"
       ],
       "js": [
         "content.js"

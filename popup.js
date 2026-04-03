@@ -108,6 +108,10 @@ function getPageType(urlValue) {
       return "wiki";
     }
 
+    if (/^\/sheets\//i.test(url.pathname)) {
+      return "sheet";
+    }
+
     return "";
   } catch (error) {
     return "";
@@ -238,11 +242,16 @@ function renderPageHint() {
     }
 
     if (pageType === "wiki") {
-      pageHint.textContent = "当前标签页是飞书知识库，文档模式支持主题跟随，表格块暂不处理。";
+      pageHint.textContent = "当前标签页是飞书知识库，文档模式与表格引擎默认底色均支持主题跟随。";
       return;
     }
 
-    pageHint.textContent = "当前标签页不是已支持的飞书文档或知识库页面。";
+    if (pageType === "sheet") {
+      pageHint.textContent = "当前标签页是飞书表格，默认单元格底色支持主题跟随，自定义填充色保持不变。";
+      return;
+    }
+
+    pageHint.textContent = "当前标签页不是已支持的飞书文档、知识库或表格页面。";
   });
 }
 

@@ -42,11 +42,31 @@ html[data-feishu-bg-extension="on"][data-feishu-bg-page="wiki"] .sidebar-contain
   background-image: none !important;
 }
 
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"],
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] body,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] #root,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] #app,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] #mainContainer,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] #sheet,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] .app,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] .suite-body,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] .garr-container,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] .garr-container-sheet,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] .alone-spread-sheet-container,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] .spreadsheet-wrap,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] .sheet-layout-wrapper,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] .alone-sheet-faster-wrapper,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] .faster_container.spreadsheet,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] #miniapp-faster,
+html[data-feishu-bg-extension="on"][data-feishu-bg-page="sheet"] .sheet-footer {
+  background-color: var(--feishu-bg-color, #faf9f6) !important;
+  background-image: none !important;
+}
+
 /*
-  Wiki table-mode overrides are intentionally paused.
-  Feishu's table engine uses a separate rendering layer, and broad cell/grid
-  background overrides were causing visual glitches and stacking issues.
-  Re-enable only after verifying the exact DOM or canvas structure.
+  Sheet support only touches container layers behind the rendered grid.
+  Overlay and canvas layers are intentionally excluded so text, lines, and
+  interactive sheet surfaces remain visible.
 */
 
 html[data-feishu-bg-extension="on"][data-feishu-bg-page="docx"] body::before,

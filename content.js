@@ -9,12 +9,15 @@ const DEFAULT_SETTINGS = {
 const HTML_FLAG = "data-feishu-bg-extension";
 const PAGE_FLAG = "data-feishu-bg-page";
 const COLOR_VARIABLE = "--feishu-bg-color";
-const SUPPORTED_PATH_PATTERN = /^\/(docx|wiki)\//i;
+const SUPPORTED_PATH_PATTERN = /^\/(docx|wiki|sheets)\//i;
 const SYSTEM_THEME_QUERY = "(prefers-color-scheme: dark)";
 
 let settings = { ...DEFAULT_SETTINGS };
 let lastHref = location.href;
 let lastAppliedState = "";
+let wikiSheetObserver = null;
+let pendingWikiSheetObserver = false;
+let lastKnownWikiSheetClassState = null;
 
 const systemThemeMedia = window.matchMedia(SYSTEM_THEME_QUERY);
 
@@ -54,10 +57,29 @@ function getPageType(candidate) {
     }
 
     const match = url.pathname.match(SUPPORTED_PATH_PATTERN);
-    return match ? match[1].toLowerCase() : "";
+
+    if (!match) {
+      return "";
+    }
+
+    const baseType = match[1].toLowerCase();
+
+    if (baseType === "sheets") {
+      return "sheet";
+    }
+
+    if (baseType === "wiki" && hasWikiSheetClass()) {
+      return "sheet";
+    }
+
+    return baseType;
   } catch (error) {
     return "";
   }
+}
+
+function hasWikiSheetClass() {
+  return Boolean(document.body?.classList.contains("suite-sheet"));
 }
 
 function getSystemVariant() {
@@ -138,7 +160,64 @@ function syncLocationState() {
   }
 
   lastHref = location.href;
+  ensureWikiSheetObserver();
   applyTheme();
+}
+
+function stopWikiSheetObserver() {
+  if (wikiSheetObserver) {
+    wikiSheetObserver.disconnect();
+    wikiSheetObserver = null;
+  }
+
+  lastKnownWikiSheetClassState = null;
+}
+
+function startWikiSheetObserver() {
+  if (!/^\/wiki\//i.test(location.pathname)) {
+    pendingWikiSheetObserver = false;
+    stopWikiSheetObserver();
+    return;
+  }
+
+  if (!document.body) {
+    pendingWikiSheetObserver = true;
+    return;
+  }
+
+  pendingWikiSheetObserver = false;
+  lastKnownWikiSheetClassState = hasWikiSheetClass();
+
+  if (wikiSheetObserver) {
+    return;
+  }
+
+  wikiSheetObserver = new MutationObserver(() => {
+    const nextWikiSheetClassState = hasWikiSheetClass();
+
+    if (nextWikiSheetClassState === lastKnownWikiSheetClassState) {
+      return;
+    }
+
+    lastKnownWikiSheetClassState = nextWikiSheetClassState;
+    applyTheme();
+  });
+
+  wikiSheetObserver.observe(document.body, {
+    attributes: true,
+    attributeFilter: ["class"]
+  });
+}
+
+function ensureWikiSheetObserver() {
+  if (pendingWikiSheetObserver && document.body) {
+    startWikiSheetObserver();
+    return;
+  }
+
+  if (document.body || !/^\/wiki\//i.test(location.pathname)) {
+    startWikiSheetObserver();
+  }
 }
 
 function wrapHistoryMethod(name) {
@@ -195,10 +274,12 @@ systemThemeMedia.addEventListener("change", () => {
   }
 });
 
+document.addEventListener("DOMContentLoaded", ensureWikiSheetObserver, true);
 window.addEventListener("popstate", syncLocationState, true);
 window.addEventListener("hashchange", syncLocationState, true);
 window.addEventListener("pageshow", syncLocationState, true);
 
 wrapHistoryMethod("pushState");
 wrapHistoryMethod("replaceState");
+ensureWikiSheetObserver();
 readSettingsAndApply();
