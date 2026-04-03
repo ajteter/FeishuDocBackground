@@ -34,60 +34,111 @@
 
         <div class="field">
           <div class="field__heading">
-            <span>背景颜色</span>
-            <span id="colorCode" class="field__meta">#faf9f6</span>
+            <span>颜色模式</span>
+            <span id="systemThemeText" class="field__meta">系统当前：浅色</span>
           </div>
-          <div class="color-row">
-            <label class="color-chip" for="colorPicker" title="打开颜色选择器">
-              <input id="colorPicker" type="color" value="#faf9f6" />
+          <div class="mode-grid" role="radiogroup" aria-label="颜色模式">
+            <label class="choice">
+              <input type="radio" name="themeMode" value="system" checked />
+              <span class="choice__panel">
+                <span class="choice__title">跟随系统</span>
+                <span class="choice__meta">随浏览器浅色或深色自动切换</span>
+              </span>
             </label>
-            <input id="colorText" class="color-text" type="text" value="#faf9f6" maxlength="7" spellcheck="false" />
-            <span id="colorPreview" class="color-preview" aria-hidden="true"></span>
+            <label class="choice">
+              <input type="radio" name="themeMode" value="manual" />
+              <span class="choice__panel">
+                <span class="choice__title">手动固定</span>
+                <span class="choice__meta">始终使用同一套背景配置</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div id="manualVariantField" class="field" hidden>
+          <div class="field__heading">
+            <span>手动固定方案</span>
+            <span id="manualVariantText" class="field__meta">当前固定：浅色配置</span>
+          </div>
+          <div class="mode-grid mode-grid--compact" role="radiogroup" aria-label="手动固定方案">
+            <label class="choice choice--compact">
+              <input type="radio" name="manualVariant" value="light" checked />
+              <span class="choice__panel">
+                <span class="choice__title">浅色配置</span>
+              </span>
+            </label>
+            <label class="choice choice--compact">
+              <input type="radio" name="manualVariant" value="dark" />
+              <span class="choice__panel">
+                <span class="choice__title">暗色配置</span>
+              </span>
+            </label>
           </div>
         </div>
 
         <div class="field">
           <div class="field__heading">
-            <span>推荐色板</span>
-            <span class="field__meta">6 种默认色</span>
+            <span>按主题分别设置</span>
+            <span id="activeSchemeText" class="field__meta">当前生效：浅色配置</span>
           </div>
-          <div class="preset-groups">
-            <section class="preset-section" aria-label="浅色模式推荐色">
-              <div class="preset-section__head">
-                <span class="preset-section__title">浅色模式</span>
-                <span class="preset-section__meta">明亮环境</span>
+
+          <div class="color-sections">
+            <section class="color-section" data-scheme="light" aria-label="浅色模式配置">
+              <div class="color-section__head">
+                <div class="color-section__copy">
+                  <span class="color-section__title">浅色模式</span>
+                  <span class="color-section__meta">明亮环境</span>
+                </div>
+                <span id="lightColorCode" class="field__meta">#faf9f6</span>
+              </div>
+              <div class="color-row">
+                <label class="color-chip" for="lightColorPicker" title="打开浅色模式颜色选择器">
+                  <input id="lightColorPicker" type="color" value="#faf9f6" />
+                </label>
+                <input id="lightColorText" class="color-text" type="text" value="#faf9f6" maxlength="7" spellcheck="false" />
+                <span id="lightColorPreview" class="color-preview" aria-hidden="true"></span>
               </div>
               <div class="preset-grid">
-                <button class="preset" type="button" data-color="#faf9f6">
+                <button class="preset" type="button" data-scheme="light" data-color="#faf9f6">
                   <span class="preset__swatch" style="--preset-color:#faf9f6"></span>
                   暖白纸感
                 </button>
-                <button class="preset" type="button" data-color="#f5f5dc">
+                <button class="preset" type="button" data-scheme="light" data-color="#f5f5dc">
                   <span class="preset__swatch" style="--preset-color:#f5f5dc"></span>
                   经典米黄
                 </button>
-                <button class="preset" type="button" data-color="#c7edcc">
+                <button class="preset" type="button" data-scheme="light" data-color="#c7edcc">
                   <span class="preset__swatch" style="--preset-color:#c7edcc"></span>
                   浅豆沙绿
                 </button>
-                <button class="preset" type="button" data-color="#e5e5e5">
+                <button class="preset" type="button" data-scheme="light" data-color="#e5e5e5">
                   <span class="preset__swatch" style="--preset-color:#e5e5e5"></span>
                   柔和浅灰
                 </button>
               </div>
             </section>
 
-            <section class="preset-section" aria-label="暗色模式推荐色">
-              <div class="preset-section__head">
-                <span class="preset-section__title">暗色模式</span>
-                <span class="preset-section__meta">暗光环境</span>
+            <section class="color-section" data-scheme="dark" aria-label="暗色模式配置">
+              <div class="color-section__head">
+                <div class="color-section__copy">
+                  <span class="color-section__title">暗色模式</span>
+                  <span class="color-section__meta">暗光环境</span>
+                </div>
+                <span id="darkColorCode" class="field__meta">#1e1e1e</span>
+              </div>
+              <div class="color-row">
+                <label class="color-chip" for="darkColorPicker" title="打开暗色模式颜色选择器">
+                  <input id="darkColorPicker" type="color" value="#1e1e1e" />
+                </label>
+                <input id="darkColorText" class="color-text" type="text" value="#1e1e1e" maxlength="7" spellcheck="false" />
+                <span id="darkColorPreview" class="color-preview" aria-hidden="true"></span>
               </div>
               <div class="preset-grid">
-                <button class="preset" type="button" data-color="#282828">
+                <button class="preset" type="button" data-scheme="dark" data-color="#282828">
                   <span class="preset__swatch" style="--preset-color:#282828"></span>
                   Gruvbox 深灰
                 </button>
-                <button class="preset" type="button" data-color="#1e1e1e">
+                <button class="preset" type="button" data-scheme="dark" data-color="#1e1e1e">
                   <span class="preset__swatch" style="--preset-color:#1e1e1e"></span>
                   夜间深灰
                 </button>
@@ -103,7 +154,8 @@
       <section class="notes">
         <div class="notes__list">
           <p id="pageHint" class="notes__item notes__item--highlight" aria-live="polite">当前标签页不是目标飞书页面，设置会在打开匹配页面后自动生效。</p>
-          <p class="notes__item">支持：`docx` 与 `wiki` 文档模式稳定可用，`wiki` 表格模式当前暂停处理。</p>
+          <p class="notes__item">支持：<code>docx</code> 与 <code>wiki</code> 文档模式稳定可用，<code>wiki</code> 表格模式当前暂停处理。</p>
+          <p class="notes__item">模式：可手动固定一套配置，也可跟随浏览器浅色或深色模式自动切换。</p>
           <p class="notes__item">规则：仅对匹配的飞书页面注入背景色。</p>
           <p class="notes__item">性能：仅同步颜色变量与 SPA 路由状态，设置仅保存在本机。</p>
         </div>

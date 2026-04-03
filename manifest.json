@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Feishu Background",
   "short_name": "Feishu BG",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Customize reading backgrounds for Feishu doc and wiki pages with a lightweight MV3 extension.",
   "icons": {
     "16": "icons/icon16.png",

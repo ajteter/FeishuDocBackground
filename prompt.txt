@@ -24,3 +24,9 @@
 2. `content.js` (如果需要动态处理 DOM)
 3. `content.css` (注入的护眼样式)
 4. 一份简短的“如何在 Chrome 中加载并测试此插件”的步骤指南。
+93A1A2
+
+# 表格url参考
+https://qw6xxurweq.feishu.cn/wiki/VuciwkGMui7P1skj9Q5chBtIn8g
+https://qw6xxurweq.feishu.cn/sheets/AvPKs1VbUhMD66tQLi1cATxRnHd?sheet=8ErWMl
+

@@ -1,21 +1,55 @@
 const DEFAULT_SETTINGS = {
   enabled: true,
-  color: "#faf9f6"
+  themeMode: "system",
+  manualVariant: "light",
+  lightColor: "#faf9f6",
+  darkColor: "#1e1e1e"
+};
+
+const LEGACY_DEFAULTS = {
+  enabled: true,
+  color: DEFAULT_SETTINGS.lightColor
 };
 
 const HEX_COLOR_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+const SYSTEM_THEME_QUERY = "(prefers-color-scheme: dark)";
 
 const enabledInput = document.getElementById("enabled");
-const colorPicker = document.getElementById("colorPicker");
-const colorText = document.getElementById("colorText");
-const colorCode = document.getElementById("colorCode");
-const colorPreview = document.getElementById("colorPreview");
 const applyButton = document.getElementById("applyButton");
 const statusText = document.getElementById("status");
 const pageHint = document.getElementById("pageHint");
+const systemThemeText = document.getElementById("systemThemeText");
+const manualVariantField = document.getElementById("manualVariantField");
+const manualVariantText = document.getElementById("manualVariantText");
+const activeSchemeText = document.getElementById("activeSchemeText");
+
+const themeModeInputs = Array.from(document.querySelectorAll('input[name="themeMode"]'));
+const manualVariantInputs = Array.from(document.querySelectorAll('input[name="manualVariant"]'));
 const presetButtons = Array.from(document.querySelectorAll(".preset"));
+const schemeSections = Array.from(document.querySelectorAll(".color-section"));
+
+const colorFields = {
+  light: {
+    picker: document.getElementById("lightColorPicker"),
+    text: document.getElementById("lightColorText"),
+    code: document.getElementById("lightColorCode"),
+    preview: document.getElementById("lightColorPreview")
+  },
+  dark: {
+    picker: document.getElementById("darkColorPicker"),
+    text: document.getElementById("darkColorText"),
+    code: document.getElementById("darkColorCode"),
+    preview: document.getElementById("darkColorPreview")
+  }
+};
+
+const systemThemeMedia = window.matchMedia(SYSTEM_THEME_QUERY);
 
 function normalizeColor(value) {
+  if (typeof value !== "string") {
+    return DEFAULT_SETTINGS.lightColor;
+  }
+
   const trimmed = value.trim();
   const prefixed = trimmed.startsWith("#") ? trimmed : `#${trimmed}`;
 
@@ -30,27 +64,32 @@ function isValidHexColor(value) {
   return HEX_COLOR_PATTERN.test(value);
 }
 
+function normalizeVariant(value) {
+  return value === "dark" ? "dark" : "light";
+}
+
+function normalizeThemeMode(value) {
+  return value === "manual" ? "manual" : "system";
+}
+
+function getSystemVariant() {
+  return systemThemeMedia.matches ? "dark" : "light";
+}
+
+function getSelectedValue(inputs, fallback) {
+  const selected = inputs.find((input) => input.checked);
+  return selected ? selected.value : fallback;
+}
+
+function setSelectedValue(inputs, nextValue) {
+  inputs.forEach((input) => {
+    input.checked = input.value === nextValue;
+  });
+}
+
 function setStatus(message, tone) {
   statusText.textContent = message;
   statusText.dataset.tone = tone || "";
-}
-
-function toggleColorInputs(isEnabled) {
-  colorPicker.disabled = !isEnabled;
-  colorText.disabled = !isEnabled;
-  presetButtons.forEach((button) => {
-    button.disabled = !isEnabled;
-  });
-}
-
-function syncColorFields(nextColor) {
-  colorPicker.value = nextColor;
-  colorText.value = nextColor;
-  colorCode.textContent = nextColor;
-  colorPreview.style.background = nextColor;
-  presetButtons.forEach((button) => {
-    button.classList.toggle("is-active", normalizeColor(button.dataset.color || "") === nextColor);
-  });
 }
 
 function getPageType(urlValue) {
@@ -75,6 +114,114 @@ function getPageType(urlValue) {
   }
 }
 
+function getActiveVariant(themeMode, manualVariant) {
+  if (normalizeThemeMode(themeMode) === "manual") {
+    return normalizeVariant(manualVariant);
+  }
+
+  return getSystemVariant();
+}
+
+function getVariantLabel(variant) {
+  return normalizeVariant(variant) === "dark" ? "暗色配置" : "浅色配置";
+}
+
+function updateSystemThemeText() {
+  systemThemeText.textContent = `系统当前：${getSystemVariant() === "dark" ? "深色" : "浅色"}`;
+}
+
+function syncColorFields(scheme, nextColor) {
+  const field = colorFields[scheme];
+
+  if (!field) {
+    return;
+  }
+
+  field.picker.value = nextColor;
+  field.text.value = nextColor;
+  field.code.textContent = nextColor;
+  field.preview.style.background = nextColor;
+
+  presetButtons.forEach((button) => {
+    const isMatch = button.dataset.scheme === scheme && normalizeColor(button.dataset.color || "") === nextColor;
+    button.classList.toggle("is-active", isMatch);
+  });
+}
+
+function getDraftSettings() {
+  return {
+    enabled: enabledInput.checked,
+    themeMode: normalizeThemeMode(getSelectedValue(themeModeInputs, DEFAULT_SETTINGS.themeMode)),
+    manualVariant: normalizeVariant(getSelectedValue(manualVariantInputs, DEFAULT_SETTINGS.manualVariant)),
+    lightColor: normalizeColor(colorFields.light.text.value || colorFields.light.picker.value),
+    darkColor: normalizeColor(colorFields.dark.text.value || colorFields.dark.picker.value)
+  };
+}
+
+function updateVariantState(settings = getDraftSettings()) {
+  const activeVariant = getActiveVariant(settings.themeMode, settings.manualVariant);
+  const isManual = settings.themeMode === "manual";
+  const isEnabled = settings.enabled;
+
+  manualVariantField.hidden = !isManual;
+  manualVariantInputs.forEach((input) => {
+    input.disabled = !isEnabled || !isManual;
+  });
+
+  manualVariantText.textContent = `当前固定：${getVariantLabel(settings.manualVariant)}`;
+  activeSchemeText.textContent = `当前生效：${getVariantLabel(activeVariant)}`;
+
+  schemeSections.forEach((section) => {
+    const scheme = section.dataset.scheme === "dark" ? "dark" : "light";
+    const isActive = scheme === activeVariant;
+    section.dataset.active = isActive ? "true" : "false";
+    section.style.opacity = isEnabled && !isActive ? "0.88" : "1";
+  });
+}
+
+function toggleFormState(isEnabled) {
+  themeModeInputs.forEach((input) => {
+    input.disabled = !isEnabled;
+  });
+
+  Object.values(colorFields).forEach(({ picker, text }) => {
+    picker.disabled = !isEnabled;
+    text.disabled = !isEnabled;
+  });
+
+  presetButtons.forEach((button) => {
+    button.disabled = !isEnabled;
+  });
+
+  updateVariantState();
+}
+
+function sanitizeSettings(items) {
+  const legacyColor = isValidHexColor(normalizeColor(items.color || "")) ? normalizeColor(items.color) : DEFAULT_SETTINGS.lightColor;
+  const lightColor = isValidHexColor(normalizeColor(items.lightColor || "")) ? normalizeColor(items.lightColor) : legacyColor;
+  const darkColor = isValidHexColor(normalizeColor(items.darkColor || "")) ? normalizeColor(items.darkColor) : legacyColor;
+
+  return {
+    enabled: Boolean(items.enabled),
+    themeMode: normalizeThemeMode(items.themeMode),
+    manualVariant: normalizeVariant(items.manualVariant),
+    lightColor,
+    darkColor
+  };
+}
+
+function renderSettings(settings) {
+  enabledInput.checked = settings.enabled;
+  setSelectedValue(themeModeInputs, settings.themeMode);
+  setSelectedValue(manualVariantInputs, settings.manualVariant);
+
+  syncColorFields("light", settings.lightColor);
+  syncColorFields("dark", settings.darkColor);
+  updateSystemThemeText();
+  toggleFormState(settings.enabled);
+  updateVariantState(settings);
+}
+
 function renderPageHint() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const [activeTab] = tabs;
@@ -86,12 +233,12 @@ function renderPageHint() {
     }
 
     if (pageType === "docx") {
-      pageHint.textContent = "当前标签页是飞书文档，文档模式支持稳定。";
+      pageHint.textContent = "当前标签页是飞书文档，支持随浏览器浅色或深色模式自动切换。";
       return;
     }
 
     if (pageType === "wiki") {
-      pageHint.textContent = "当前标签页是飞书知识库，普通文档模式支持稳定，表格块暂不处理。";
+      pageHint.textContent = "当前标签页是飞书知识库，文档模式支持主题跟随，表格块暂不处理。";
       return;
     }
 
@@ -100,12 +247,8 @@ function renderPageHint() {
 }
 
 function loadSettings() {
-  chrome.storage.local.get(DEFAULT_SETTINGS, (items) => {
-    const color = isValidHexColor(items.color) ? normalizeColor(items.color) : DEFAULT_SETTINGS.color;
-
-    enabledInput.checked = Boolean(items.enabled);
-    syncColorFields(color);
-    toggleColorInputs(enabledInput.checked);
+  chrome.storage.local.get({ ...LEGACY_DEFAULTS, ...DEFAULT_SETTINGS }, (items) => {
+    renderSettings(sanitizeSettings(items));
   });
 }
 
@@ -137,17 +280,12 @@ function notifyActiveTab(settings) {
 }
 
 function persistSettings() {
-  const candidateColor = normalizeColor(colorText.value || colorPicker.value);
+  const settings = getDraftSettings();
 
-  if (!isValidHexColor(candidateColor)) {
+  if (!isValidHexColor(settings.lightColor) || !isValidHexColor(settings.darkColor)) {
     setStatus("颜色格式无效，请输入 #RGB 或 #RRGGBB。", "error");
     return;
   }
-
-  const settings = {
-    enabled: enabledInput.checked,
-    color: candidateColor.toLowerCase()
-  };
 
   applyButton.disabled = true;
   setStatus("正在保存设置...", "");
@@ -160,49 +298,82 @@ function persistSettings() {
       return;
     }
 
-    syncColorFields(settings.color);
-    toggleColorInputs(settings.enabled);
+    renderSettings(settings);
     notifyActiveTab(settings);
   });
 }
 
 enabledInput.addEventListener("change", () => {
-  toggleColorInputs(enabledInput.checked);
+  toggleFormState(enabledInput.checked);
   setStatus("", "");
 });
 
-colorPicker.addEventListener("input", () => {
-  colorText.value = colorPicker.value.toLowerCase();
-  setStatus("", "");
+themeModeInputs.forEach((input) => {
+  input.addEventListener("change", () => {
+    updateVariantState();
+    setStatus("", "");
+  });
 });
 
-colorText.addEventListener("input", () => {
-  const normalized = normalizeColor(colorText.value);
-
-  if (isValidHexColor(normalized)) {
-    colorPicker.value = normalized.toLowerCase();
-    colorCode.textContent = normalized.toLowerCase();
-    colorPreview.style.background = normalized.toLowerCase();
-  }
-
-  setStatus("", "");
+manualVariantInputs.forEach((input) => {
+  input.addEventListener("change", () => {
+    updateVariantState();
+    setStatus("", "");
+  });
 });
 
-colorText.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    persistSettings();
-  }
+Object.entries(colorFields).forEach(([scheme, field]) => {
+  field.picker.addEventListener("input", () => {
+    const nextColor = field.picker.value.toLowerCase();
+    field.text.value = nextColor;
+    field.code.textContent = nextColor;
+    field.preview.style.background = nextColor;
+    presetButtons.forEach((button) => {
+      const isMatch = button.dataset.scheme === scheme && normalizeColor(button.dataset.color || "") === nextColor;
+      button.classList.toggle("is-active", isMatch);
+    });
+    setStatus("", "");
+  });
+
+  field.text.addEventListener("input", () => {
+    const normalized = normalizeColor(field.text.value);
+
+    if (isValidHexColor(normalized)) {
+      field.picker.value = normalized;
+      field.code.textContent = normalized;
+      field.preview.style.background = normalized;
+      presetButtons.forEach((button) => {
+        const isMatch = button.dataset.scheme === scheme && normalizeColor(button.dataset.color || "") === normalized;
+        button.classList.toggle("is-active", isMatch);
+      });
+    }
+
+    setStatus("", "");
+  });
+
+  field.text.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      persistSettings();
+    }
+  });
 });
 
 presetButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    const color = normalizeColor(button.dataset.color || DEFAULT_SETTINGS.color);
-    syncColorFields(color);
-    setStatus(`已选择推荐色 ${color}，点击“保存并应用”后生效。`, "");
+    const scheme = button.dataset.scheme === "dark" ? "dark" : "light";
+    const color = normalizeColor(button.dataset.color || DEFAULT_SETTINGS[`${scheme}Color`]);
+    syncColorFields(scheme, color);
+    updateVariantState();
+    setStatus(`已选择${scheme === "dark" ? "暗色" : "浅色"}推荐色 ${color}，点击“保存并应用”后生效。`, "");
   });
 });
 
 applyButton.addEventListener("click", persistSettings);
+
+systemThemeMedia.addEventListener("change", () => {
+  updateSystemThemeText();
+  updateVariantState();
+});
 
 loadSettings();
 renderPageHint();

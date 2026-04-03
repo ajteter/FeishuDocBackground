@@ -1,20 +1,26 @@
 const DEFAULT_SETTINGS = {
   enabled: true,
-  color: "#faf9f6"
+  themeMode: "system",
+  manualVariant: "light",
+  lightColor: "#faf9f6",
+  darkColor: "#1e1e1e"
 };
 
 const HTML_FLAG = "data-feishu-bg-extension";
 const PAGE_FLAG = "data-feishu-bg-page";
 const COLOR_VARIABLE = "--feishu-bg-color";
 const SUPPORTED_PATH_PATTERN = /^\/(docx|wiki)\//i;
+const SYSTEM_THEME_QUERY = "(prefers-color-scheme: dark)";
 
 let settings = { ...DEFAULT_SETTINGS };
 let lastHref = location.href;
 let lastAppliedState = "";
 
-function normalizeColor(value) {
+const systemThemeMedia = window.matchMedia(SYSTEM_THEME_QUERY);
+
+function normalizeColor(value, fallback) {
   if (typeof value !== "string") {
-    return DEFAULT_SETTINGS.color;
+    return fallback;
   }
 
   const trimmed = value.trim();
@@ -28,7 +34,15 @@ function normalizeColor(value) {
     return prefixed.toLowerCase();
   }
 
-  return DEFAULT_SETTINGS.color;
+  return fallback;
+}
+
+function normalizeVariant(value) {
+  return value === "dark" ? "dark" : "light";
+}
+
+function normalizeThemeMode(value) {
+  return value === "manual" ? "manual" : "system";
 }
 
 function getPageType(candidate) {
@@ -44,6 +58,36 @@ function getPageType(candidate) {
   } catch (error) {
     return "";
   }
+}
+
+function getSystemVariant() {
+  return systemThemeMedia.matches ? "dark" : "light";
+}
+
+function getActiveVariant() {
+  if (settings.themeMode === "manual") {
+    return settings.manualVariant;
+  }
+
+  return getSystemVariant();
+}
+
+function getActiveColor() {
+  return getActiveVariant() === "dark" ? settings.darkColor : settings.lightColor;
+}
+
+function sanitizeSettings(items) {
+  const legacyColor = normalizeColor(items.color, DEFAULT_SETTINGS.lightColor);
+  const lightColor = normalizeColor(items.lightColor, legacyColor);
+  const darkColor = normalizeColor(items.darkColor, legacyColor);
+
+  return {
+    enabled: Boolean(items.enabled),
+    themeMode: normalizeThemeMode(items.themeMode),
+    manualVariant: normalizeVariant(items.manualVariant),
+    lightColor,
+    darkColor
+  };
 }
 
 function disableTheme() {
@@ -74,7 +118,9 @@ function applyTheme() {
     return;
   }
 
-  const nextState = `${pageType}:${settings.color}`;
+  const activeVariant = getActiveVariant();
+  const activeColor = getActiveColor();
+  const nextState = `${pageType}:${settings.themeMode}:${activeVariant}:${activeColor}`;
 
   if (lastAppliedState === nextState) {
     return;
@@ -82,7 +128,7 @@ function applyTheme() {
 
   document.documentElement.setAttribute(HTML_FLAG, "on");
   document.documentElement.setAttribute(PAGE_FLAG, pageType);
-  document.documentElement.style.setProperty(COLOR_VARIABLE, settings.color);
+  document.documentElement.style.setProperty(COLOR_VARIABLE, activeColor);
   lastAppliedState = nextState;
 }
 
@@ -110,12 +156,8 @@ function wrapHistoryMethod(name) {
 }
 
 function readSettingsAndApply() {
-  chrome.storage.local.get(DEFAULT_SETTINGS, (items) => {
-    settings = {
-      enabled: Boolean(items.enabled),
-      color: normalizeColor(items.color)
-    };
-
+  chrome.storage.local.get({ ...DEFAULT_SETTINGS, color: DEFAULT_SETTINGS.lightColor }, (items) => {
+    settings = sanitizeSettings(items);
     applyTheme();
   });
 }
@@ -125,14 +167,16 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     return;
   }
 
-  if (changes.enabled) {
-    settings.enabled = Boolean(changes.enabled.newValue);
-  }
+  const nextItems = {
+    ...settings,
+    color: settings.lightColor
+  };
 
-  if (changes.color) {
-    settings.color = normalizeColor(changes.color.newValue);
-  }
+  Object.entries(changes).forEach(([key, change]) => {
+    nextItems[key] = change.newValue;
+  });
 
+  settings = sanitizeSettings(nextItems);
   applyTheme();
 });
 
@@ -141,12 +185,14 @@ chrome.runtime.onMessage.addListener((message) => {
     return;
   }
 
-  settings = {
-    enabled: Boolean(message.payload?.enabled),
-    color: normalizeColor(message.payload?.color)
-  };
-
+  settings = sanitizeSettings(message.payload || {});
   applyTheme();
+});
+
+systemThemeMedia.addEventListener("change", () => {
+  if (settings.themeMode === "system") {
+    applyTheme();
+  }
 });
 
 window.addEventListener("popstate", syncLocationState, true);
